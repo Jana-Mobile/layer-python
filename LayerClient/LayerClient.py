@@ -114,24 +114,24 @@ class PlatformClient(object):
             data=(json.dumps(data) if data else None)
         )
 
-        if not result.ok:
-            try:
-                error = result.json()
-                raise LayerPlatformException(
-                        error.get('message'),
-                        http_code=result.status_code,
-                        code=error.get('code'),
-                        error_id=error.get('id'),
-                )
-            except ValueError:
-                # Catches the JSON decode error for failures that do not have
-                # associated data
-                raise LayerPlatformException(
-                    result.text,
-                    http_code=result.status_code,
-                )
+        if result.ok:
+            return result.json()
 
-        return result.json()
+        try:
+            error = result.json()
+            raise LayerPlatformException(
+                    error.get('message'),
+                    http_code=result.status_code,
+                    code=error.get('code'),
+                    error_id=error.get('id'),
+            )
+        except ValueError:
+            # Catches the JSON decode error for failures that do not have
+            # associated data
+            raise LayerPlatformException(
+                result.text,
+                http_code=result.status_code,
+            )
 
     def get_conversation(self, conversation_uuid):
         """
