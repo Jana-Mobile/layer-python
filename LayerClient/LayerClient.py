@@ -134,10 +134,10 @@ class PlatformClient(object):
         try:
             error = result.json()
             raise LayerPlatformException(
-                    error.get('message'),
-                    http_code=result.status_code,
-                    code=error.get('code'),
-                    error_id=error.get('id'),
+                error.get('message'),
+                http_code=result.status_code,
+                code=error.get('code'),
+                error_id=error.get('id'),
             )
         except ValueError:
             # Catches the JSON decode error for failures that do not have
@@ -268,9 +268,7 @@ class PlatformClient(object):
         return Announcement.from_dict(
             self._raw_request(
                 METHOD_POST,
-                self._get_layer_uri(
-                    LAYER_URI_ANNOUNCEMENTS,
-                ),
+                self._get_layer_uri(LAYER_URI_ANNOUNCEMENTS),
                 request_data,
             )
         )
