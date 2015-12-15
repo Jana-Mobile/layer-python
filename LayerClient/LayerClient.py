@@ -219,7 +219,14 @@ class PlatformClient(object):
         - `sender`: A `LayerClient.Sender` instance
         - `message_parts`: An array of `LayerClient.MessagePart` objects
         - `notification`: Optional `PushNotification` instance.
+
+        Return: A new Message instance, or None if we were passed invalid
+        (None) arguments.
         """
+
+        if not conversation or not sender or not message_parts:
+            return None
+
         request_data = {
             'sender': sender.as_dict(),
             'parts': [
