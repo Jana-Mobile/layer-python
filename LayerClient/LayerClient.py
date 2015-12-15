@@ -45,6 +45,20 @@ class BaseLayerResponse:
 
         return None
 
+    @staticmethod
+    def parse_date(date):
+        """
+        Convert an ISO 8601 datestamp format to a Python date object.
+
+        Parameter `date`: A string datestamp in ISO 8601 format. May be None.
+        Return: A datetime, or None if the date string was empty.
+        """
+
+        if not date:
+            return None
+
+        return dateutil.parser.parse(date)
+
 
 class PlatformClient(object):
     """
@@ -277,15 +291,10 @@ class Announcement(BaseLayerResponse):
 
     @staticmethod
     def from_dict(dict_data):
-        sent_at = (
-            dateutil.parser.parse(dict_data.get('sent_at'))
-            if dict_data.get('sent_at') else None
-        )
-
         return Announcement(
             dict_data.get('id'),
             dict_data.get('url'),
-            sent_at,
+            Announcement.parse_date(dict_data.get('sent_at')),
             dict_data.get('recipients'),
             Sender.from_dict(dict_data.get('sender')),
             [
@@ -316,14 +325,10 @@ class Message(BaseLayerResponse):
 
     @staticmethod
     def from_dict(dict_data):
-        sent_at = (
-            dateutil.parser.parse(dict_data.get('sent_at'))
-            if dict_data.get('sent_at') else None
-        )
         return Message(
             dict_data.get('id'),
             dict_data.get('url'),
-            sent_at,
+            Message.parse_date(dict_data.get('sent_at')),
             Sender.from_dict(dict_data.get('sender')),
             Conversation.from_dict(dict_data.get('conversation')),
             [
