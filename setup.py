@@ -5,7 +5,7 @@ setup(
     name='LayerClient',
     version='0.1.4',
     packages=['LayerClient'],
-    description='Client for the Layer Platform APIs',
+    description='Client for the Layer Platform API',
     url='https://github.com/Jana-Mobile/layer-python',
     maintainer='Jana',
     maintainer_email='opensource@jana.com',
