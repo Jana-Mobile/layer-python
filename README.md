@@ -23,6 +23,13 @@ Or, download the source code and run
 $ python setup.py install
 `
 
+There is a tox configuration to make testing and linting easier - the following
+are supported:
+
+    $ tox                    # Runs py27-test by default
+    $ tox -e py27-coverage   # Run test coverage report
+    $ tox -e lint            # Check for flake8 violations
+
 ## Usage
 
 The interface is close to that of the HTTP API itself. Here is an example of a
