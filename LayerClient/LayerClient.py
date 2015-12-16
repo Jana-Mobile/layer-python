@@ -503,6 +503,17 @@ class Conversation(BaseLayerResponse):
         self.distinct = distinct
         self.metadata = metadata
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'messages_url': self.messages_url,
+            'created_at': self.created_at,
+            'participants': self.participants,
+            'distinct': self.distinct,
+            'metadata': self.metadata,
+        }
+
     @staticmethod
     def from_dict(dict_data):
         created_at = (
