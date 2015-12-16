@@ -4,11 +4,15 @@ from LayerClient import LayerClient
 
 class MockRequestResponse(object):
 
-    def __init__(self, ok, json):
+    def __init__(self, ok, json=None, text=None, status_code=200):
         self.ok = ok
         self._json = json
+        self.text = text
+        self.status_code = status_code
 
     def json(self):
+        if self._json is None:
+            raise ValueError
         return self._json
 
 
