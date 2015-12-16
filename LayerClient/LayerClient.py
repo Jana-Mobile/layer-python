@@ -360,15 +360,17 @@ class Sender:
     def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
+        if not id and not name:
+            raise ValueError("A sender must have at least one of ID or Name")
 
     @staticmethod
-    def from_dict(json):
-        if not json:
+    def from_dict(dict_data):
+        if not dict_data:
             return None
 
         return Sender(
-            json.get('id'),
-            json.get('name'),
+            id=dict_data.get('user_id'),
+            name=dict_data.get('name'),
         )
 
     def __repr__(self):
