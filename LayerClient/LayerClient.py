@@ -469,18 +469,20 @@ class PushNotification:
         if self.sound:
             data['sound'] = self.sound
 
+        if not self.recipients:
+            return data
+
         # If per-recipient push notification instances are present, convert
         # them to dictionaries as well. We don't simply recurse here to
         # ensure that we do not have child PushNotifications with their own
         # recipients fields.
-        if self.recipients:
-            recipients_dict = {}
-            for recipient, notification in self.recipients.iteritems():
-                recipients_dict[recipient] = {
-                    'text': notification.text,
-                    'sound': notification.sound,
-                }
-            data['recipients'] = self.recipients
+        recipients_dict = {}
+        for recipient, notification in self.recipients.iteritems():
+            recipients_dict[recipient] = {
+                'text': notification.text,
+                'sound': notification.sound,
+            }
+        data['recipients'] = self.recipients
 
         return data
 
