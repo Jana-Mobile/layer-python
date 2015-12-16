@@ -51,6 +51,8 @@ class TestSendMessage(TestPlatformClient):
             return MockRequestResponse(
                 True,
                 {
+                    'id': 'layer:///messages/TEST_MESSAGE_UUID',
+                    'url': 'layer:///messages/TEST_MESSAGE_UUID',
                     'conversation': conversation.as_dict(),
                 },
             )

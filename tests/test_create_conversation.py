@@ -22,7 +22,13 @@ class TestCreateConverstaion(TestPlatformClient):
                 'distinct': True,
             }
 
-            return MockRequestResponse(True, {})
+            return MockRequestResponse(
+                True,
+                {
+                    'id': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                    'url': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                },
+            )
 
         monkeypatch.setattr('requests.request', verify_request_args)
         layerclient.create_conversation('TEST_CONVERSATION_UUID')
@@ -48,7 +54,13 @@ class TestCreateConverstaion(TestPlatformClient):
                 'distinct': False,
             }
 
-            return MockRequestResponse(True, {})
+            return MockRequestResponse(
+                True,
+                {
+                    'id': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                    'url': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                },
+            )
 
         monkeypatch.setattr('requests.request', verify_request_args)
         layerclient.create_conversation(

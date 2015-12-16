@@ -25,11 +25,18 @@ class LayerPlatformException(Exception):
         self.error_id = error_id
 
 
-class BaseLayerResponse:
+class BaseLayerResponse(object):
     """
     Base class for several of the datatypes returned by Layer - if it returns
     an ID and a URL, it should extend this class in order to get UUID parsing.
     """
+
+    def __init__(self, id, url):
+        self.id = id
+        self.url = url
+
+        if not self.id or not self.url:
+            raise ValueError("Response must contain at least an ID and a URL")
 
     def uuid(self):
         """
@@ -287,8 +294,7 @@ class Announcement(BaseLayerResponse):
     """
 
     def __init__(self, id, url, sent_at, recipients, sender, parts):
-        self.id = id
-        self.url = url
+        super(Announcement, self).__init__(id, url)
         self.sent_at = sent_at
         self.recipients = recipients
         self.sender = sender
@@ -321,8 +327,7 @@ class Message(BaseLayerResponse):
 
     def __init__(self, id, url, sent_at=None, sender=None,
                  conversation=None, parts=None, recipient_status=None):
-        self.id = id
-        self.url = url
+        super(Message, self).__init__(id, url)
         self.sent_at = sent_at
         self.sender = sender
         self.conversation = conversation
@@ -495,8 +500,7 @@ class Conversation(BaseLayerResponse):
 
     def __init__(self, id, url, messages_url=None, created_at=None,
                  participants=[], distinct=False, metadata=None):
-        self.id = id
-        self.url = url
+        super(Conversation, self).__init__(id, url)
         self.messages_url = messages_url
         self.created_at = created_at
         self.participants = participants

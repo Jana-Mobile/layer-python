@@ -17,7 +17,13 @@ class TestGetConverstaion(TestPlatformClient):
              }
             assert data is None
 
-            return MockRequestResponse(True, {})
+            return MockRequestResponse(
+                True,
+                {
+                    'id': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                    'url': 'layer:///conversation/TEST_CONVERSATION_UUID',
+                },
+            )
 
         monkeypatch.setattr("requests.request", verify_request_args)
         layerclient.get_conversation('TEST_CONVERSATION_UUID')

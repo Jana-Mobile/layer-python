@@ -40,7 +40,13 @@ class TestSendAnnouncement(TestPlatformClient):
                 }
             }
 
-            return MockRequestResponse(True, {})
+            return MockRequestResponse(
+                True,
+                {
+                    'id': 'layer:///messages/TEST_MESSAGE_UUID',
+                    'url': 'layer:///messages/TEST_MESSAGE_UUID',
+                },
+            )
 
         monkeypatch.setattr('requests.request', verify_request_args)
         layerclient.send_announcement(
