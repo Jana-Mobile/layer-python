@@ -487,7 +487,7 @@ class PushNotification:
                 'text': notification.text,
                 'sound': notification.sound,
             }
-        data['recipients'] = self.recipients
+        data['recipients'] = recipients_dict
 
         return data
 

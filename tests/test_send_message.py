@@ -24,6 +24,14 @@ class TestSendMessage(TestPlatformClient):
             ),
         ]
 
+        notification = LayerClient.PushNotification(
+            'You have a new message!',
+            sound='foo.wav',
+            recipients={
+                'bob': LayerClient.PushNotification('Message for Bob!'),
+            },
+        )
+
         def verify_request_args(method, url, headers, data):
             assert method == 'POST'
             assert url == (
@@ -45,7 +53,17 @@ class TestSendMessage(TestPlatformClient):
                 ],
                 'sender': {
                     'user_id': 'alice',
-                }
+                },
+                'notification': {
+                    'text': 'You have a new message!',
+                    'sound': 'foo.wav',
+                    'recipients': {
+                        'bob': {
+                            'sound': None,
+                            'text': 'Message for Bob!',
+                        },
+                    },
+                },
             }
 
             return MockRequestResponse(
@@ -62,6 +80,7 @@ class TestSendMessage(TestPlatformClient):
             conversation,
             sender,
             message_parts,
+            notification=notification,
         )
 
     def test_parse_response(self, layerclient, monkeypatch):
