@@ -386,10 +386,10 @@ class Sender:
             return {
                 'user_id': self.id,
             }
-        else:
-            return {
-                'name': self.name,
-            }
+
+        return {
+            'name': self.name,
+        }
 
 
 class MessagePart:
