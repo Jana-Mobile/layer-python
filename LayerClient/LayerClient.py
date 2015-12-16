@@ -303,7 +303,8 @@ class Announcement(BaseLayerResponse):
             dict_data.get('recipients'),
             Sender.from_dict(dict_data.get('sender')),
             [
-                MessagePart.from_dict(part) for part in dict_data.get('parts')
+                MessagePart.from_dict(part)
+                for part in dict_data.get('parts', [])
             ],
         )
 
@@ -337,7 +338,8 @@ class Message(BaseLayerResponse):
             Sender.from_dict(dict_data.get('sender')),
             Conversation.from_dict(dict_data.get('conversation')),
             [
-                MessagePart.from_dict(part) for part in dict_data.get('parts')
+                MessagePart.from_dict(part)
+                for part in dict_data.get('parts', [])
             ],
             dict_data.get('recipient_status'),
         )
