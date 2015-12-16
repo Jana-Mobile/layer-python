@@ -516,15 +516,11 @@ class Conversation(BaseLayerResponse):
 
     @staticmethod
     def from_dict(dict_data):
-        created_at = (
-            dateutil.parser.parse(dict_data.get('created_at'))
-            if dict_data.get('created_at') else None
-        )
         return Conversation(
             dict_data.get('id'),
             dict_data.get('url'),
             dict_data.get('messages_url'),
-            created_at,
+            Conversation.parse_date(dict_data.get('created_at')),
             dict_data.get('participants'),
             dict_data.get('distinct'),
             dict_data.get('metadata'),
