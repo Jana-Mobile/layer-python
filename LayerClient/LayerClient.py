@@ -499,11 +499,11 @@ class Conversation(BaseLayerResponse):
     """
 
     def __init__(self, id, url, messages_url=None, created_at=None,
-                 participants=[], distinct=False, metadata=None):
+                 participants=None, distinct=False, metadata=None):
         super(Conversation, self).__init__(id, url)
         self.messages_url = messages_url
         self.created_at = created_at
-        self.participants = participants
+        self.participants = participants if participants else []
         self.distinct = distinct
         self.metadata = metadata
 
