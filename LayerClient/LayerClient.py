@@ -3,7 +3,10 @@ import dateutil.parser
 import requests
 import json
 
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 MIME_TEXT_PLAIN = 'text/plain'
 
