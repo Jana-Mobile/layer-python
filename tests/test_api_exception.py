@@ -22,7 +22,7 @@ class TestApiException(TestPlatformClient):
         with pytest.raises(LayerClient.LayerPlatformException) as e:
             layerclient.get_conversation('some_uuid')
 
-        assert e.value.message == 'Operation not supported'
+        assert str(e.value) == 'Operation not supported'
         assert e.value.http_code == 401
         assert e.value.code == 40
         assert e.value.error_id == 23
@@ -40,5 +40,5 @@ class TestApiException(TestPlatformClient):
         with pytest.raises(LayerClient.LayerPlatformException) as e:
             layerclient.get_conversation('some_uuid')
 
-        assert e.value.message == 'Internal server error'
+        assert str(e.value) == 'Internal server error'
         assert e.value.http_code == 500
