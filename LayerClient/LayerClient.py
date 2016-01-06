@@ -489,7 +489,7 @@ class PushNotification:
             recipients_iter = self.recipients.iteritems()
             pass
         except AttributeError:
-            ## Raised an atribute error must be using python3
+            # Raised an atribute error must be using python3
             recipients_iter = self.recipients.items()
             pass
         for recipient, notification in recipients_iter:
