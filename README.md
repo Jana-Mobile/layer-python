@@ -26,7 +26,8 @@ $ python setup.py install
 There is a tox configuration to make testing and linting easier - the following
 are supported:
 
-    $ tox                    # Runs py27-test by default
+    $ tox                    # Runs py27-test (unit tests under python 2.7) by default
+    $ tox -e py3-test        # Runs tests under python3
     $ tox -e py27-coverage   # Run test coverage report
     $ tox -e lint            # Check for flake8 violations
 
