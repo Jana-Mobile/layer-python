@@ -3,7 +3,10 @@ import dateutil.parser
 import requests
 import json
 
-from urlparse import urlparse
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
 
 MIME_TEXT_PLAIN = 'text/plain'
 
@@ -482,7 +485,14 @@ class PushNotification:
         # ensure that we do not have child PushNotifications with their own
         # recipients fields.
         recipients_dict = {}
-        for recipient, notification in self.recipients.iteritems():
+        try:
+            recipients_iter = self.recipients.iteritems()
+            pass
+        except AttributeError:
+            ## Raised an atribute error must be using python3
+            recipients_iter = self.recipients.items()
+            pass
+        for recipient, notification in recipients_iter:
             recipients_dict[recipient] = {
                 'text': notification.text,
                 'sound': notification.sound,
