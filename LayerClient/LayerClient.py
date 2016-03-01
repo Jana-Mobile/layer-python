@@ -17,6 +17,7 @@ METHOD_DELETE = 'DELETE'
 LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
 LAYER_URI_MESSAGES = 'messages'
+LAYER_URI_CONTENT = 'content'
 
 
 class LayerPlatformException(Exception):
@@ -116,7 +117,7 @@ class PlatformClient(object):
             suffix=suffix_string,
         )
 
-    def _raw_request(self, method, url, data=None):
+    def _raw_request(self, method, url, data=None, extra_headers=None):
         """
         Actually make a call to the Layer API.
         If the response does not come back as valid, raises a
@@ -131,10 +132,13 @@ class PlatformClient(object):
 
         Exception: `LayerPlatformException` if the API returns non-OK response
         """
+        headers = self._get_layer_headers()
+        if extra_headers:
+            headers.update(extra_headers)
         result = requests.request(
             method,
             url,
-            headers=self._get_layer_headers(),
+            headers=headers,
             data=(json.dumps(data) if data else None)
         )
 
@@ -217,6 +221,31 @@ class PlatformClient(object):
                 }
             )
         )
+
+    def prepare_rich_content(self, conversation, content_type, content_size):
+        """
+        Prepare the rich content by requesting the rich content upload
+        :return: the prepared rich content ready to upload the content
+
+        NB: once the rich content is prepared, you need to upload the content
+            to the cloud storage given by the `RichContent.upload_url` property
+        """
+        return RichContent.from_dict(
+            self._raw_request(
+                METHOD_POST,
+                self._get_layer_uri(
+                    LAYER_URI_CONVERSATIONS,
+                    conversation.uuid(),
+                    LAYER_URI_CONTENT
+                ),
+                extra_headers={
+                    'Upload-Content-Type': content_type,
+                    'Upload-Content-Length': content_size,
+                    # 'Upload-Origin': 'http://mydomain.com'  # No support of the upload origin yet
+                }
+            )
+        )
+
 
     def send_message(self, conversation, sender, message_parts,
                      notification=None):
@@ -400,6 +429,38 @@ class Sender:
         }
 
 
+class RichContent:
+    """
+    Used to prepare rich content
+
+    Because a message part is limited to 2KiB by Layer, for bigger contents
+    we need to first upload it to a cloud server.
+    """
+
+    def __init__(self, content_id, content_size, upload_url,
+                 download_url=None, refresh_url=None, expiration=None):
+        self.id = content_id
+        self.size = content_size
+        self.upload_url = upload_url
+        self.download_url = download_url
+        self.refresh_url = refresh_url
+        self.expiration = expiration
+
+    @staticmethod
+    def from_dict(dict_data):
+        if not dict_data:
+            return None
+
+        return RichContent(
+            dict_data.get('id'),
+            dict_data.get('size'),
+            dict_data.get('upload_url'),
+            download_url=dict_data.get('download_url'),
+            refresh_url=dict_data.get('refresh_url'),
+            expiration=dict_data.get('expiration'),
+        )
+
+
 class MessagePart:
     """
     A message chunk, as used for sending messages.
@@ -409,26 +470,41 @@ class MessagePart:
     By default, chunks are text/plain but can be any format.
     Messages that are non-text (e.g. images) can be sent as base64. In this
     case, the encoding field must be set.
+
+    An instance of `MessagePart` can be of two types :
+      - message chunk with a body
+        >>> MessagePart("some text")
+      - message chunk witch a rich content
+        >>> MessagePart(None, content={"id": "TEST_CONTENT_ID", "size": 23})
     """
 
-    def __init__(self, body, mime=MIME_TEXT_PLAIN, encoding=None):
+    def __init__(self, body, mime=MIME_TEXT_PLAIN, **kwargs):
         self.body = body
         self.mime_type = mime
-        self.encoding = encoding
+        self.encoding = kwargs.get('encoding')
+        self.content = kwargs.get('content')
+        if self.body and self.content:
+            raise ValueError("`body` and `content` are mutually exclusive, "
+                             "you can't define both at the same time")
+
 
     @staticmethod
     def from_dict(dict_data):
         return MessagePart(
             dict_data.get('body'),
-            dict_data.get('mime_type'),
-            dict_data.get('encoding'),
+            mime=dict_data.get('mime_type'),
+            encoding=dict_data.get('encoding'),
+            content=dict_data.get('content'),
         )
 
     def __repr__(self):
         return (
-            '<LayerClient.MessagePart "{body}"{mime}{encoding}>'
+            '<LayerClient.MessagePart "{body_or_content}"{mime}{encoding}>'
             .format(
-                body=self.body,
+                body_or_content=(
+                    "content of {} bytes length".format(len(self.content)) if self.content
+                    else self.body
+                ),
                 mime=' Content-Type: {0}'.format(self.mime_type),
                 encoding=(
                     ' Encoding: {0}'.format(self.encoding) if self.encoding
@@ -438,10 +514,16 @@ class MessagePart:
         )
 
     def as_dict(self):
+        if self.body and self.content:
+            raise ValueError("`body` and `content` are mutually exclusive, "
+                             "you can't define both at the same time")
         data = {
-            'body': self.body,
             'mime_type': self.mime_type,
         }
+        if self.body:
+            data['body'] = self.body
+        if self.content:
+            data['content'] = self.content
         if self.encoding:
             data['encoding'] = self.encoding
 
