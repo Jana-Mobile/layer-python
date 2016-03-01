@@ -226,6 +226,9 @@ class PlatformClient(object):
         """
         Prepare the rich content by requesting the rich content upload
         :return: the prepared rich content ready to upload the content
+
+        NB: once the rich content is prepared, you need to upload the content
+            to the cloud storage given by the `RichContent.upload_url` property
         """
         return RichContent.from_dict(
             self._raw_request(
@@ -467,26 +470,41 @@ class MessagePart:
     By default, chunks are text/plain but can be any format.
     Messages that are non-text (e.g. images) can be sent as base64. In this
     case, the encoding field must be set.
+
+    An instance of `MessagePart` can be of two types :
+      - message chunk with a body
+        >>> MessagePart("some text")
+      - message chunk witch a rich content
+        >>> MessagePart(None, content={"id": "TEST_CONTENT_ID", "size": 23})
     """
 
-    def __init__(self, body, mime=MIME_TEXT_PLAIN, encoding=None):
+    def __init__(self, body, mime=MIME_TEXT_PLAIN, **kwargs):
         self.body = body
         self.mime_type = mime
-        self.encoding = encoding
+        self.encoding = kwargs.get('encoding')
+        self.content = kwargs.get('content')
+        if self.body and self.content:
+            raise ValueError("`body` and `content` are mutually exclusive, "
+                             "you can't define both at the same time")
+
 
     @staticmethod
     def from_dict(dict_data):
         return MessagePart(
             dict_data.get('body'),
-            dict_data.get('mime_type'),
-            dict_data.get('encoding'),
+            mime=dict_data.get('mime_type'),
+            encoding=dict_data.get('encoding'),
+            content=dict_data.get('content'),
         )
 
     def __repr__(self):
         return (
-            '<LayerClient.MessagePart "{body}"{mime}{encoding}>'
+            '<LayerClient.MessagePart "{body_or_content}"{mime}{encoding}>'
             .format(
-                body=self.body,
+                body_or_content=(
+                    "content of {} bytes length".format(len(self.content)) if self.content
+                    else self.body
+                ),
                 mime=' Content-Type: {0}'.format(self.mime_type),
                 encoding=(
                     ' Encoding: {0}'.format(self.encoding) if self.encoding
@@ -496,10 +514,16 @@ class MessagePart:
         )
 
     def as_dict(self):
+        if self.body and self.content:
+            raise ValueError("`body` and `content` are mutually exclusive, "
+                             "you can't define both at the same time")
         data = {
-            'body': self.body,
             'mime_type': self.mime_type,
         }
+        if self.body:
+            data['body'] = self.body
+        if self.content:
+            data['content'] = self.content
         if self.encoding:
             data['encoding'] = self.encoding
 
