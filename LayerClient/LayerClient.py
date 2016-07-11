@@ -3,6 +3,8 @@ import dateutil.parser
 import requests
 import json
 
+from simplejson.scanner import JSONDecodeError
+
 try:
     from urlparse import urlparse
 except ImportError:
@@ -13,6 +15,7 @@ MIME_TEXT_PLAIN = 'text/plain'
 METHOD_GET = 'GET'
 METHOD_POST = 'POST'
 METHOD_DELETE = 'DELETE'
+METHOD_PATCH = 'PATCH'
 
 LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
@@ -88,7 +91,7 @@ class PlatformClient(object):
         self.app_uuid = app_uuid
         self.bearer_token = bearer_token
 
-    def _get_layer_headers(self):
+    def _get_layer_headers(self, method):
         """
         Convenience method for retrieving the default set of authenticated
         headers.
@@ -96,10 +99,12 @@ class PlatformClient(object):
         Return: The headers required to authorize ourselves with the Layer
         platform API.
         """
+        content_type = 'application/json' if method != METHOD_PATCH else 'application/vnd.layer-patch+json'
+
         return {
             'Accept': 'application/vnd.layer+json; version=1.0',
             'Authorization': 'Bearer ' + self.bearer_token,
-            'Content-Type': 'application/json'
+            'Content-Type': content_type
         }
 
     def _get_layer_uri(self, *suffixes):
@@ -132,7 +137,7 @@ class PlatformClient(object):
 
         Exception: `LayerPlatformException` if the API returns non-OK response
         """
-        headers = self._get_layer_headers()
+        headers = self._get_layer_headers(method)
         if extra_headers:
             headers.update(extra_headers)
         result = requests.request(
@@ -143,8 +148,11 @@ class PlatformClient(object):
         )
 
         if result.ok:
-            return result.json()
-
+            try:
+                return result.json()
+            except JSONDecodeError:
+                # On patch requests it fails because there is no response
+                return result
         try:
             error = result.json()
             raise LayerPlatformException(
@@ -220,6 +228,30 @@ class PlatformClient(object):
                     'metadata': metadata,
                 }
             )
+        )
+
+    def update_conversation(self, conversation, metadata=None):
+        '''
+        Updates metadata of conversation
+
+        :param conversation: `Conversation` object with `id` not being empty
+        :param metadata: Unstructured data to be passed through to the client.
+            This data must be json-serializable.
+        :return: `Response` object
+        '''
+        return self._raw_request(
+            METHOD_PATCH,
+            self._get_layer_uri(
+                LAYER_URI_CONVERSATIONS,
+                conversation.uuid()
+            ),
+            [
+                {
+                    "operation": "set",
+                    "property": "metadata",
+                    "value": metadata
+                }
+            ]
         )
 
     def prepare_rich_content(self, conversation, content_type, content_size):
