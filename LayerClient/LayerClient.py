@@ -16,11 +16,14 @@ METHOD_GET = 'GET'
 METHOD_POST = 'POST'
 METHOD_DELETE = 'DELETE'
 METHOD_PATCH = 'PATCH'
+METHOD_PUT = 'PUT'
 
 LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
 LAYER_URI_MESSAGES = 'messages'
 LAYER_URI_CONTENT = 'content'
+LAYER_URI_USERS = 'users'
+LAYER_URI_USERS_IDENTITY = 'identity'
 
 
 class LayerPlatformException(Exception):
@@ -254,6 +257,42 @@ class PlatformClient(object):
             ]
         )
 
+
+    def replace_identity(self, identity):
+        '''
+        Updates metadata of conversation
+
+        :param identity: `Sender` object
+        :return: `Response` object
+        '''
+
+        return self._raw_request(
+            METHOD_PUT,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                identity.id,
+                LAYER_URI_USERS_IDENTITY
+            ),
+            identity.as_dict()
+        )
+
+    def get_identity(self, user_id):
+        '''
+        Updates metadata of conversation
+
+        :param identity: `Sender` object
+        :return: `Sender` object
+        '''
+
+        return Sender.from_dict(self._raw_request(
+            METHOD_GET,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                user_id,
+                LAYER_URI_USERS_IDENTITY
+            )
+        ))
+
     def prepare_rich_content(self, conversation, content_type, content_size):
         """
         Prepare the rich content by requesting the rich content upload
@@ -426,9 +465,17 @@ class Sender:
     one over the other.
     """
 
-    def __init__(self, id=None, name=None):
+    def __init__(self, id=None, name=None, display_name=None, avatar_url=None, first_name=None, last_name=None, phone_number=None, email_address=None, metadata=None):
         self.id = id
         self.name = name
+        self.display_name = display_name
+        self.avatar_url = avatar_url
+        self.first_name = first_name
+        self.last_name = last_name
+        self.phone_number = phone_number
+        self.email_address = email_address
+        self.metadata = metadata
+
         if not id and not name:
             raise ValueError("A sender must have at least one of ID or Name")
 
@@ -440,6 +487,13 @@ class Sender:
         return Sender(
             id=dict_data.get('user_id'),
             name=dict_data.get('name'),
+            display_name=dict_data.get('display_name'),
+            avatar_url=dict_data.get('avatar_url'),
+            first_name=dict_data.get('first_name'),
+            last_name=dict_data.get('last_name'),
+            phone_number=dict_data.get('phone_number'),
+            email_address=dict_data.get('email_address'),
+            metadata=dict_data.get('metadata'),
         )
 
     def __repr__(self):
@@ -451,14 +505,22 @@ class Sender:
     def as_dict(self):
         # If both ID and name are set, we will default to only the ID.
         # The layer platform explicitly prohibits sending both.
-        if self.id:
-            return {
-                'user_id': self.id,
-            }
-
-        return {
-            'name': self.name,
+        data = {
+            'display_name': self.display_name,
+            'avatar_url': self.avatar_url,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'phone_number': self.phone_number,
+            'email_address': self.email_address,
+            'metadata': self.metadata,
         }
+
+        if self.id:
+            data['user_id'] = self.id
+        else:
+            data['name'] = self.name
+
+        return data
 
 
 class RichContent:
