@@ -24,6 +24,7 @@ LAYER_URI_MESSAGES = 'messages'
 LAYER_URI_CONTENT = 'content'
 LAYER_URI_USERS = 'users'
 LAYER_URI_USERS_IDENTITY = 'identity'
+LAYER_URI_USERS_BADGE = 'badge'
 
 
 class LayerPlatformException(Exception):
@@ -274,6 +275,27 @@ class PlatformClient(object):
                 LAYER_URI_USERS_IDENTITY
             ),
             identity.as_dict()
+        )
+
+    def update_user_external_badge_count(self, identity_id, count):
+        '''
+        Updates external badge count of user
+
+        :param identity_id: `Str` identifier of user
+        :param count: `int` value
+        :return: `Response` object
+        '''
+
+        return self._raw_request(
+            METHOD_PUT,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                identity_id,
+                LAYER_URI_USERS_BADGE
+            ),
+            {
+                'external_unread_count': count
+            }
         )
 
     def get_identity(self, user_id):
