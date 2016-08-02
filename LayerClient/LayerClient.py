@@ -261,7 +261,7 @@ class PlatformClient(object):
 
     def replace_identity(self, identity):
         '''
-        Updates metadata of conversation
+        Updates metadata of user
 
         :param identity: `Sender` object
         :return: `Response` object
