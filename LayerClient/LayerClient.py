@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-import dateutil.parser
-import requests
 import json
 
-from simplejson.scanner import JSONDecodeError
+import dateutil.parser
+import requests
 
 try:
     from urlparse import urlparse
@@ -28,7 +27,6 @@ LAYER_URI_USERS_BADGE = 'badge'
 
 
 class LayerPlatformException(Exception):
-
     def __init__(self, message, http_code=None, code=None, error_id=None):
         super(LayerPlatformException, self).__init__(message)
         self.http_code = http_code
@@ -103,7 +101,10 @@ class PlatformClient(object):
         Return: The headers required to authorize ourselves with the Layer
         platform API.
         """
-        content_type = 'application/json' if method != METHOD_PATCH else 'application/vnd.layer-patch+json'
+
+        content_type = 'application/json'
+        if method == METHOD_PATCH:
+            content_type = 'application/vnd.layer-patch+json'
 
         return {
             'Accept': 'application/vnd.layer+json; version=1.0',
@@ -154,7 +155,7 @@ class PlatformClient(object):
         if result.ok:
             try:
                 return result.json()
-            except JSONDecodeError:
+            except ValueError:
                 # On patch requests it fails because there is no response
                 return result
         try:
@@ -258,7 +259,6 @@ class PlatformClient(object):
             ]
         )
 
-
     def replace_identity(self, identity):
         '''
         Updates metadata of user
@@ -339,7 +339,6 @@ class PlatformClient(object):
             )
         )
 
-
     def send_message(self, conversation, sender, message_parts,
                      notification=None):
         """
@@ -363,7 +362,7 @@ class PlatformClient(object):
             'sender': sender.as_dict(),
             'parts': [
                 part.as_dict() for part in message_parts
-            ],
+                ],
         }
         if notification:
             request_data['notification'] = notification.as_dict()
@@ -398,7 +397,7 @@ class PlatformClient(object):
             },
             'parts': [
                 part.as_dict() for part in message_parts
-            ],
+                ],
             'recipients': recipients,
         }
         if notification:
@@ -436,7 +435,7 @@ class Announcement(BaseLayerResponse):
             [
                 MessagePart.from_dict(part)
                 for part in dict_data.get('parts', [])
-            ],
+                ],
         )
 
     def __repr__(self):
@@ -470,7 +469,7 @@ class Message(BaseLayerResponse):
             [
                 MessagePart.from_dict(part)
                 for part in dict_data.get('parts', [])
-            ],
+                ],
             dict_data.get('recipient_status'),
         )
 
@@ -487,7 +486,9 @@ class Sender:
     one over the other.
     """
 
-    def __init__(self, id=None, name=None, display_name=None, avatar_url=None, first_name=None, last_name=None, phone_number=None, email_address=None, metadata=None):
+    def __init__(self, id=None, name=None, display_name=None, avatar_url=None,
+                 first_name=None, last_name=None,
+                 phone_number=None, email_address=None, metadata=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -603,7 +604,6 @@ class MessagePart:
             raise ValueError("`body` and `content` are mutually exclusive, "
                              "you can't define both at the same time")
 
-
     @staticmethod
     def from_dict(dict_data):
         return MessagePart(
@@ -616,9 +616,10 @@ class MessagePart:
     def __repr__(self):
         return (
             '<LayerClient.MessagePart "{body_or_content}"{mime}{encoding}>'
-            .format(
+                .format(
                 body_or_content=(
-                    "content of {} bytes length".format(len(self.content)) if self.content
+                    "content of {} bytes length".format(
+                        len(self.content)) if self.content
                     else self.body
                 ),
                 mime=' Content-Type: {0}'.format(self.mime_type),
