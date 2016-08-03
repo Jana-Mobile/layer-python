@@ -528,15 +528,27 @@ class Sender:
     def as_dict(self):
         # If both ID and name are set, we will default to only the ID.
         # The layer platform explicitly prohibits sending both.
-        data = {
-            'display_name': self.display_name,
-            'avatar_url': self.avatar_url,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'phone_number': self.phone_number,
-            'email_address': self.email_address,
-            'metadata': self.metadata,
-        }
+        data = {}
+        if self.display_name:
+            data['display_name'] = self.display_name
+
+        if self.avatar_url:
+            data['avatar_url'] = self.avatar_url
+
+        if self.first_name:
+            data['first_name'] = self.first_name
+
+        if self.last_name:
+            data['last_name'] = self.last_name
+
+        if self.phone_number:
+            data['phone_number'] = self.phone_number
+
+        if self.email_address:
+            data['email_address'] = self.email_address
+
+        if self.metadata:
+            data['metadata'] = self.metadata
 
         if self.id:
             data['user_id'] = self.id
