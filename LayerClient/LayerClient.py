@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import json
+
 import dateutil.parser
 import requests
-import json
 
 try:
     from urlparse import urlparse
@@ -13,15 +14,21 @@ MIME_TEXT_PLAIN = 'text/plain'
 METHOD_GET = 'GET'
 METHOD_POST = 'POST'
 METHOD_DELETE = 'DELETE'
+METHOD_PATCH = 'PATCH'
+METHOD_PUT = 'PUT'
 
 LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
 LAYER_URI_MESSAGES = 'messages'
 LAYER_URI_CONTENT = 'content'
+
+LAYER_URI_USERS = 'users'
+LAYER_URI_USERS_IDENTITY = 'identity'
+LAYER_URI_USERS_BADGE = 'badge'
+
 LAYER_URI_RECEIPTS = 'receipts'
 
 class LayerPlatformException(Exception):
-
     def __init__(self, message, http_code=None, code=None, error_id=None):
         super(LayerPlatformException, self).__init__(message)
         self.http_code = http_code
@@ -88,7 +95,7 @@ class PlatformClient(object):
         self.app_uuid = app_uuid
         self.bearer_token = bearer_token
 
-    def _get_layer_headers(self):
+    def _get_layer_headers(self, method):
         """
         Convenience method for retrieving the default set of authenticated
         headers.
@@ -96,10 +103,15 @@ class PlatformClient(object):
         Return: The headers required to authorize ourselves with the Layer
         platform API.
         """
+
+        content_type = 'application/json'
+        if method == METHOD_PATCH:
+            content_type = 'application/vnd.layer-patch+json'
+
         return {
             'Accept': 'application/vnd.layer+json; version=1.0',
             'Authorization': 'Bearer ' + self.bearer_token,
-            'Content-Type': 'application/json'
+            'Content-Type': content_type
         }
 
     def _get_layer_uri(self, *suffixes):
@@ -132,7 +144,7 @@ class PlatformClient(object):
 
         Exception: `LayerPlatformException` if the API returns non-OK response
         """
-        headers = self._get_layer_headers()
+        headers = self._get_layer_headers(method)
         if extra_headers:
             headers.update(extra_headers)
         result = requests.request(
@@ -143,8 +155,11 @@ class PlatformClient(object):
         )
 
         if result.ok:
-            return result.json()
-
+            try:
+                return result.json()
+            except ValueError:
+                # On patch requests it fails because there is no response
+                return result
         try:
             error = result.json()
             raise LayerPlatformException(
@@ -222,6 +237,86 @@ class PlatformClient(object):
             )
         )
 
+    def update_conversation(self, conversation, metadata=None):
+        '''
+        Updates metadata of conversation
+
+        :param conversation: `Conversation` object with `id` not being empty
+        :param metadata: Unstructured data to be passed through to the client.
+            This data must be json-serializable.
+        :return: `Response` object
+        '''
+        return self._raw_request(
+            METHOD_PATCH,
+            self._get_layer_uri(
+                LAYER_URI_CONVERSATIONS,
+                conversation.uuid()
+            ),
+            [
+                {
+                    "operation": "set",
+                    "property": "metadata",
+                    "value": metadata
+                }
+            ]
+        )
+
+    def replace_identity(self, identity):
+        '''
+        Updates metadata of user
+
+        :param identity: `Sender` object
+        :return: `Response` object
+        '''
+
+        return self._raw_request(
+            METHOD_PUT,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                identity.id,
+                LAYER_URI_USERS_IDENTITY
+            ),
+            identity.as_dict()
+        )
+
+    def update_user_external_badge_count(self, identity_id, count):
+        '''
+        Updates external badge count of user
+
+        :param identity_id: `Str` identifier of user
+        :param count: `int` value
+        :return: `Response` object
+        '''
+
+        return self._raw_request(
+            METHOD_PUT,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                identity_id,
+                LAYER_URI_USERS_BADGE
+            ),
+            {
+                'external_unread_count': count
+            }
+        )
+
+    def get_identity(self, user_id):
+        '''
+        Updates metadata of conversation
+
+        :param identity: `Sender` object
+        :return: `Sender` object
+        '''
+
+        return Sender.from_dict(self._raw_request(
+            METHOD_GET,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                user_id,
+                LAYER_URI_USERS_IDENTITY
+            )
+        ))
+
     def prepare_rich_content(self, conversation, content_type, content_size):
         """
         Prepare the rich content by requesting the rich content upload
@@ -246,7 +341,6 @@ class PlatformClient(object):
             )
         )
 
-
     def send_message(self, conversation, sender, message_parts,
                      notification=None):
         """
@@ -270,7 +364,7 @@ class PlatformClient(object):
             'sender': sender.as_dict(),
             'parts': [
                 part.as_dict() for part in message_parts
-            ],
+                ],
         }
         if notification:
             request_data['notification'] = notification.as_dict()
@@ -305,7 +399,7 @@ class PlatformClient(object):
             },
             'parts': [
                 part.as_dict() for part in message_parts
-            ],
+                ],
             'recipients': recipients,
         }
         if notification:
@@ -363,7 +457,7 @@ class Announcement(BaseLayerResponse):
             [
                 MessagePart.from_dict(part)
                 for part in dict_data.get('parts', [])
-            ],
+                ],
         )
 
     def __repr__(self):
@@ -399,7 +493,7 @@ class Message(BaseLayerResponse):
             [
                 MessagePart.from_dict(part)
                 for part in dict_data.get('parts', [])
-            ],
+                ],
             dict_data.get('recipient_status'),
             dict_data.get('is_unread'),
         )
@@ -417,9 +511,19 @@ class Sender:
     one over the other.
     """
 
-    def __init__(self, id=None, name=None):
+    def __init__(self, id=None, name=None, display_name=None, avatar_url=None,
+                 first_name=None, last_name=None,
+                 phone_number=None, email_address=None, metadata=None):
         self.id = id
         self.name = name
+        self.display_name = display_name
+        self.avatar_url = avatar_url
+        self.first_name = first_name
+        self.last_name = last_name
+        self.phone_number = phone_number
+        self.email_address = email_address
+        self.metadata = metadata
+
         if not id and not name:
             raise ValueError("A sender must have at least one of ID or Name")
 
@@ -431,6 +535,13 @@ class Sender:
         return Sender(
             id=dict_data.get('user_id'),
             name=dict_data.get('name'),
+            display_name=dict_data.get('display_name'),
+            avatar_url=dict_data.get('avatar_url'),
+            first_name=dict_data.get('first_name'),
+            last_name=dict_data.get('last_name'),
+            phone_number=dict_data.get('phone_number'),
+            email_address=dict_data.get('email_address'),
+            metadata=dict_data.get('metadata'),
         )
 
     def __repr__(self):
@@ -442,14 +553,34 @@ class Sender:
     def as_dict(self):
         # If both ID and name are set, we will default to only the ID.
         # The layer platform explicitly prohibits sending both.
-        if self.id:
-            return {
-                'user_id': self.id,
-            }
+        data = {}
+        if self.display_name:
+            data['display_name'] = self.display_name
 
-        return {
-            'name': self.name,
-        }
+        if self.avatar_url:
+            data['avatar_url'] = self.avatar_url
+
+        if self.first_name:
+            data['first_name'] = self.first_name
+
+        if self.last_name:
+            data['last_name'] = self.last_name
+
+        if self.phone_number:
+            data['phone_number'] = self.phone_number
+
+        if self.email_address:
+            data['email_address'] = self.email_address
+
+        if self.metadata:
+            data['metadata'] = self.metadata
+
+        if self.id:
+            data['user_id'] = self.id
+        else:
+            data['name'] = self.name
+
+        return data
 
 
 class RichContent:
@@ -510,7 +641,6 @@ class MessagePart:
             raise ValueError("`body` and `content` are mutually exclusive, "
                              "you can't define both at the same time")
 
-
     @staticmethod
     def from_dict(dict_data):
         return MessagePart(
@@ -523,9 +653,10 @@ class MessagePart:
     def __repr__(self):
         return (
             '<LayerClient.MessagePart "{body_or_content}"{mime}{encoding}>'
-            .format(
+                .format(
                 body_or_content=(
-                    "content of {} bytes length".format(len(self.content)) if self.content
+                    "content of {} bytes length".format(
+                        len(self.content)) if self.content
                     else self.body
                 ),
                 mime=' Content-Type: {0}'.format(self.mime_type),
