@@ -21,10 +21,12 @@ LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
 LAYER_URI_MESSAGES = 'messages'
 LAYER_URI_CONTENT = 'content'
+
 LAYER_URI_USERS = 'users'
 LAYER_URI_USERS_IDENTITY = 'identity'
 LAYER_URI_USERS_BADGE = 'badge'
 
+LAYER_URI_RECEIPTS = 'receipts'
 
 class LayerPlatformException(Exception):
     def __init__(self, message, http_code=None, code=None, error_id=None):
@@ -411,6 +413,26 @@ class PlatformClient(object):
             )
         )
 
+    def mark_delivery_receipt_message(self, message_uuid, type='sent'):
+        """
+        Mark delivery receipt for message
+
+        Parameters:
+        - `message_uuid`: The uuid of the message read
+        - `type`: receipt message type
+        """
+        request_data = {
+            'type': type
+        }
+        self._raw_request(
+            METHOD_POST,
+            self._get_layer_uri(
+                LAYER_URI_MESSAGES,
+                message_uuid,
+                LAYER_URI_RECEIPTS,
+            ),
+            request_data,
+        )
 
 class Announcement(BaseLayerResponse):
     """
@@ -450,13 +472,15 @@ class Message(BaseLayerResponse):
     """
 
     def __init__(self, id, url, sent_at=None, sender=None,
-                 conversation=None, parts=None, recipient_status=None):
+                 conversation=None, parts=None, recipient_status=None,
+                 is_unread=True):
         super(Message, self).__init__(id, url)
         self.sent_at = sent_at
         self.sender = sender
         self.conversation = conversation
         self.parts = parts
         self.recipient_status = recipient_status
+        self.is_unread = is_unread
 
     @staticmethod
     def from_dict(dict_data):
@@ -471,6 +495,7 @@ class Message(BaseLayerResponse):
                 for part in dict_data.get('parts', [])
                 ],
             dict_data.get('recipient_status'),
+            dict_data.get('is_unread'),
         )
 
     def __repr__(self):
