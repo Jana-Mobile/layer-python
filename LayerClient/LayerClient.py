@@ -380,6 +380,24 @@ class PlatformClient(object):
             )
         )
 
+    def delete_message(self, conversation_uuid, message_uuid):
+        """
+        Delete a message. Affects all users in the conversation across all
+        of their devices.
+
+        Parameter `conversation_uuid`: The uuid of the conversation that message was sent in
+        Parameter `message_uuid`: The uuid of the message to delete
+        """
+        self._raw_request(
+            METHOD_DELETE,
+            self._get_layer_uri(
+                LAYER_URI_CONVERSATIONS,
+                conversation_uuid,
+                LAYER_URI_MESSAGES,
+                message_uuid,
+            ),
+        )
+
     def send_announcement(self, sender, recipients, message_parts,
                           notification=None):
         """
