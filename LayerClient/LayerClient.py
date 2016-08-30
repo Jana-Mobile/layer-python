@@ -28,6 +28,7 @@ LAYER_URI_USERS_BADGE = 'badge'
 
 LAYER_URI_RECEIPTS = 'receipts'
 
+
 class LayerPlatformException(Exception):
     def __init__(self, message, http_code=None, code=None, error_id=None):
         super(LayerPlatformException, self).__init__(message)
@@ -241,20 +242,25 @@ class PlatformClient(object):
         '''
         Updates metadata of conversation
 
-        :param conversation_uuid: Conversation uuid, can be
+        :param conversation_uuid: Conversation uuid. For backwards compatibily accepts also `Conversation` object
         :param metadata: Unstructured data to be passed through to the client.
             This data must be json-serializable.
         :param custom_operations: Other operations you want to do on the conversation
         :return: `Response` object
         '''
 
-        operations = [
-            {
-                "operation": "set",
-                "property": "metadata",
-                "value": metadata
-            }
-        ]
+        if not isinstance(conversation_uuid, basestring):
+            conversation_uuid = conversation_uuid.uuid()
+
+        operations = []
+        if metadata:
+            operations.append(
+                {
+                    "operation": "set",
+                    "property": "metadata",
+                    "value": metadata
+                }
+            )
         if custom_operations:
             operations += custom_operations
 
@@ -457,6 +463,7 @@ class PlatformClient(object):
             ),
             request_data,
         )
+
 
 class Announcement(BaseLayerResponse):
     """
