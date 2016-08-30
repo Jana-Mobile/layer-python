@@ -237,28 +237,34 @@ class PlatformClient(object):
             )
         )
 
-    def update_conversation(self, conversation, metadata=None):
+    def update_conversation(self, conversation_uuid, metadata=None, custom_operations=None):
         '''
         Updates metadata of conversation
 
-        :param conversation: `Conversation` object with `id` not being empty
+        :param conversation_uuid: Conversation uuid, can be
         :param metadata: Unstructured data to be passed through to the client.
             This data must be json-serializable.
+        :param custom_operations: Other operations you want to do on the conversation
         :return: `Response` object
         '''
+
+        operations = [
+            {
+                "operation": "set",
+                "property": "metadata",
+                "value": metadata
+            }
+        ]
+        if custom_operations:
+            operations += custom_operations
+
         return self._raw_request(
             METHOD_PATCH,
             self._get_layer_uri(
                 LAYER_URI_CONVERSATIONS,
-                conversation.uuid()
+                conversation_uuid
             ),
-            [
-                {
-                    "operation": "set",
-                    "property": "metadata",
-                    "value": metadata
-                }
-            ]
+            operations
         )
 
     def replace_identity(self, identity):
