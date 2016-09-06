@@ -238,7 +238,8 @@ class PlatformClient(object):
             )
         )
 
-    def update_conversation(self, conversation_uuid, metadata=None, custom_operations=None):
+    def update_conversation(self, conversation_uuid, metadata=None,
+                            custom_operations=None):
         '''
         Updates metadata of conversation
 
@@ -249,7 +250,7 @@ class PlatformClient(object):
         :return: `Response` object
         '''
 
-        if not isinstance(conversation_uuid, basestring):
+        if isinstance(conversation_uuid, Conversation):
             conversation_uuid = conversation_uuid.uuid()
 
         operations = []
