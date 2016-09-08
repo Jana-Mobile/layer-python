@@ -311,11 +311,14 @@ class TestSendMessage(TestPlatformClient):
             'f3cc7b32-3c92-11e4-baad-164230d1df67'
         )
 
-        assert response.parts[0].body == None
+        assert response.parts[0].body is None
         assert response.parts[0].mime_type == 'image/jpeg'
-        assert response.parts[0].encoding == None
+        assert response.parts[0].encoding is None
         assert isinstance(response.parts[0].content, dict)
-        assert response.parts[0].content.get('id') == 'layer:///content/TEST_CONTENT_UUID'
+        assert (
+            response.parts[0].content.get('id') ==
+            'layer:///content/TEST_CONTENT_UUID'
+        )
         assert response.parts[0].content.get('size') == 23
 
         assert response.recipient_status == {
