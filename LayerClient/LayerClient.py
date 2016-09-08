@@ -28,6 +28,7 @@ LAYER_URI_USERS_BADGE = 'badge'
 
 LAYER_URI_RECEIPTS = 'receipts'
 
+
 class LayerPlatformException(Exception):
     def __init__(self, message, http_code=None, code=None, error_id=None):
         super(LayerPlatformException, self).__init__(message)
@@ -237,28 +238,40 @@ class PlatformClient(object):
             )
         )
 
-    def update_conversation(self, conversation, metadata=None):
+    def update_conversation(self, conversation_uuid, metadata=None,
+                            custom_operations=None):
         '''
         Updates metadata of conversation
 
-        :param conversation: `Conversation` object with `id` not being empty
+        :param conversation_uuid: Conversation uuid. For backwards compatibily accepts also `Conversation` object
         :param metadata: Unstructured data to be passed through to the client.
             This data must be json-serializable.
+        :param custom_operations: Other operations you want to do on the conversation
         :return: `Response` object
         '''
-        return self._raw_request(
-            METHOD_PATCH,
-            self._get_layer_uri(
-                LAYER_URI_CONVERSATIONS,
-                conversation.uuid()
-            ),
-            [
+
+        if isinstance(conversation_uuid, Conversation):
+            conversation_uuid = conversation_uuid.uuid()
+
+        operations = []
+        if metadata:
+            operations.append(
                 {
                     "operation": "set",
                     "property": "metadata",
                     "value": metadata
                 }
-            ]
+            )
+        if custom_operations:
+            operations += custom_operations
+
+        return self._raw_request(
+            METHOD_PATCH,
+            self._get_layer_uri(
+                LAYER_URI_CONVERSATIONS,
+                conversation_uuid
+            ),
+            operations
         )
 
     def replace_identity(self, identity):
@@ -451,6 +464,7 @@ class PlatformClient(object):
             ),
             request_data,
         )
+
 
 class Announcement(BaseLayerResponse):
     """
