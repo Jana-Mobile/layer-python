@@ -243,10 +243,12 @@ class PlatformClient(object):
         '''
         Updates metadata of conversation
 
-        :param conversation_uuid: Conversation uuid. For backwards compatibily accepts also `Conversation` object
+        :param conversation_uuid: Conversation uuid. For backwards compatibily
+            accepts also `Conversation` object
         :param metadata: Unstructured data to be passed through to the client.
             This data must be json-serializable.
-        :param custom_operations: Other operations you want to do on the conversation
+        :param custom_operations: Other operations you want to do on
+            the conversation
         :return: `Response` object
         '''
 
@@ -349,7 +351,8 @@ class PlatformClient(object):
                 extra_headers={
                     'Upload-Content-Type': content_type,
                     'Upload-Content-Length': content_size,
-                    # 'Upload-Origin': 'http://mydomain.com'  # No support of the upload origin yet
+                    # No support of the upload origin yet
+                    # 'Upload-Origin': 'http://mydomain.com'
                 }
             )
         )
@@ -399,7 +402,8 @@ class PlatformClient(object):
         Delete a message. Affects all users in the conversation across all
         of their devices.
 
-        Parameter `conversation_uuid`: The uuid of the conversation that message was sent in
+        Parameter `conversation_uuid`: The uuid of the conversation that
+            message was sent in
         Parameter `message_uuid`: The uuid of the message to delete
         """
         self._raw_request(
@@ -684,9 +688,8 @@ class MessagePart:
 
     def __repr__(self):
         return (
-            '<LayerClient.MessagePart "{body_or_content}"{mime}{encoding}>'
-                .format(
-                body_or_content=(
+            '<LayerClient.MessagePart "{body}"{mime}{encoding}>'.format(
+                body=(
                     "content of {} bytes length".format(
                         len(self.content)) if self.content
                     else self.body

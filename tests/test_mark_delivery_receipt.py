@@ -10,7 +10,7 @@ class TestMarkDeliveryReceipt(TestPlatformClient):
             assert url == (
                 "https://api.layer.com/apps/TEST_APP_UUID/"
                 "messages/TEST_MESSAGE_UUID/receipts"
-			)
+            )
             assert headers == {
                 'Accept': 'application/vnd.layer+json; version=1.0',
                 'Authorization': 'Bearer TEST_BEARER_TOKEN',
@@ -25,5 +25,3 @@ class TestMarkDeliveryReceipt(TestPlatformClient):
 
         monkeypatch.setattr("requests.request", verify_request_args)
         layerclient.mark_delivery_receipt_message('TEST_MESSAGE_UUID', 'read')
-
-
