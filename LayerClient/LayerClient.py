@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 import json
 
 import dateutil.parser
@@ -124,13 +126,12 @@ class PlatformClient(object):
 
         Return: A complete URI for an endpoint with optional arguments
         """
-        suffix_string = '/'.join(suffixes) if suffixes else ''
         return 'https://api.layer.com/apps/{app_id}/{suffix}'.format(
             app_id=self.app_uuid,
-            suffix=suffix_string,
+            suffix='/'.join(map(unicode, suffixes)),
         )
 
-    def _raw_request(self, method, url, data=None, extra_headers=None):
+    def _raw_request(self, method, url, data=None, extra_headers=None, params=None):
         """
         Actually make a call to the Layer API.
         If the response does not come back as valid, raises a
@@ -152,7 +153,8 @@ class PlatformClient(object):
             method,
             url,
             headers=headers,
-            data=(json.dumps(data) if data else None)
+            data=(json.dumps(data) if data else None),
+            params=params
         )
 
         if result.ok:
@@ -192,6 +194,70 @@ class PlatformClient(object):
                     LAYER_URI_CONVERSATIONS,
                     conversation_uuid,
                 ),
+            )
+        )
+
+    def get_conversations(self, user_id, page_size=None, from_id=None, sort_by=None):
+        """
+        Fetch an existing conversation by user UUID
+
+        :param user_id: User ID
+        :param page_size: (optional) Number of results to return; 100 is default and max
+        :param from_id: (optional) Get the Conversations logically sorted after this ID (by default, this corresponds
+        to Conversations chronologically before this ID). Can be passed as a Layer URI layer:///conversations/uuid or
+        simply a UUID
+        :param sort_by: (optional) Either created_at to sort by Conversation creation time (newest first), or
+        last_message to sort by most recently sent message (newest first)
+        :rtype: list[Conversation]
+        """
+        params = {}
+        if page_size:
+            params['page_size'] = page_size
+
+        if from_id:
+            params['from_id'] = from_id
+
+        if sort_by:
+            params['sort_by'] = sort_by
+
+        return Conversation.from_list(
+            self._raw_request(
+                METHOD_GET,
+                self._get_layer_uri(
+                    LAYER_URI_USERS,
+                    user_id,
+                    LAYER_URI_CONVERSATIONS
+                ),
+                params=params
+            )
+        )
+
+    def get_messages(self, conversation_uuid, from_id=None, page_size=None):
+        """
+        Fetch list of messages by conversation UUID
+
+        :param conversation_uuid: The UUID of the conversation to fetch
+        :param page_size: (optional) Number of messages to return; max and default of 100
+        :param from_id: (optional) Get the Messages logically sorted after this ID (by default, this corresponds to
+        Messages chronologically before this ID). Can be passed as a Layer URI layer:///messages/uuid or simply a UUID
+        :rtype: list[Message]
+        """
+        params = {}
+        if page_size:
+            params['page_size'] = page_size
+
+        if from_id:
+            params['from_id'] = from_id
+
+        return Message.from_list(
+            self._raw_request(
+                METHOD_GET,
+                self._get_layer_uri(
+                    LAYER_URI_CONVERSATIONS,
+                    conversation_uuid,
+                    LAYER_URI_MESSAGES
+                ),
+                params=params
             )
         )
 
@@ -510,6 +576,16 @@ class Message(BaseLayerResponse):
     def __init__(self, id, url, sent_at=None, sender=None,
                  conversation=None, parts=None, recipient_status=None,
                  is_unread=True):
+        """
+        :type id: unicode
+        :type url: unicode
+        :type sent_at: datetime
+        :type sender: Sender
+        :type conversation: Conversation
+        :type parts: list[MessagePart]
+        :type recipient_status: unicode
+        :type is_unread: bool
+        """
         super(Message, self).__init__(id, url)
         self.sent_at = sent_at
         self.sender = sender
@@ -533,6 +609,10 @@ class Message(BaseLayerResponse):
             dict_data.get('recipient_status'),
             dict_data.get('is_unread'),
         )
+
+    @classmethod
+    def from_list(cls, list_data):
+        return [cls.from_dict(data) for data in list_data]
 
     def __repr__(self):
         return '<LayerClient.Message "{uuid}">'.format(
@@ -810,6 +890,10 @@ class Conversation(BaseLayerResponse):
             dict_data.get('distinct'),
             dict_data.get('metadata'),
         )
+
+    @classmethod
+    def from_list(cls, list_data):
+        return [cls.from_dict(data) for data in list_data]
 
     def __repr__(self):
         return '<LayerClient.Conversation "{uuid}">'.format(
