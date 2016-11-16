@@ -6,7 +6,7 @@ from test_utils import MockRequestResponse, TestPlatformClient
 class TestApiException(TestPlatformClient):
 
     def test_json_exception(self, layerclient, monkeypatch):
-        def return_sample_response(method, url, headers, data):
+        def return_sample_response(method, url, headers, data, params):
             return MockRequestResponse(
                 False,
                 json={
@@ -28,7 +28,7 @@ class TestApiException(TestPlatformClient):
         assert e.value.error_id == 23
 
     def test_raw_exception(self, layerclient, monkeypatch):
-        def return_sample_response(method, url, headers, data):
+        def return_sample_response(method, url, headers, data, params):
             return MockRequestResponse(
                 False,
                 text='Internal server error',

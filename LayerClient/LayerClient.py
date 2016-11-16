@@ -131,7 +131,8 @@ class PlatformClient(object):
             suffix='/'.join(map(unicode, suffixes)),
         )
 
-    def _raw_request(self, method, url, data=None, extra_headers=None, params=None):
+    def _raw_request(self, method, url, data=None, extra_headers=None,
+                     params=None):
         """
         Actually make a call to the Layer API.
         If the response does not come back as valid, raises a
@@ -197,17 +198,21 @@ class PlatformClient(object):
             )
         )
 
-    def get_conversations(self, user_id, page_size=None, from_id=None, sort_by=None):
+    def get_conversations(self, user_id, page_size=None, from_id=None,
+                          sort_by=None):
         """
         Fetch an existing conversation by user UUID
 
         :param user_id: User ID
-        :param page_size: (optional) Number of results to return; 100 is default and max
-        :param from_id: (optional) Get the Conversations logically sorted after this ID (by default, this corresponds
-        to Conversations chronologically before this ID). Can be passed as a Layer URI layer:///conversations/uuid or
-        simply a UUID
-        :param sort_by: (optional) Either created_at to sort by Conversation creation time (newest first), or
-        last_message to sort by most recently sent message (newest first)
+        :param page_size: (optional) Number of results to return; 100 is
+        default and max
+        :param from_id: (optional) Get the Conversations logically sorted
+        after this ID (by default, this corresponds to Conversations
+        chronologically before this ID). Can be passed as a Layer URI
+        layer:///conversations/uuid or simply a UUID
+        :param sort_by: (optional) Either created_at to sort by Conversation
+        creation time (newest first), or last_message to sort by most recently
+        sent message (newest first)
         :rtype: list[Conversation]
         """
         params = {}
@@ -237,9 +242,12 @@ class PlatformClient(object):
         Fetch list of messages by conversation UUID
 
         :param conversation_uuid: The UUID of the conversation to fetch
-        :param page_size: (optional) Number of messages to return; max and default of 100
-        :param from_id: (optional) Get the Messages logically sorted after this ID (by default, this corresponds to
-        Messages chronologically before this ID). Can be passed as a Layer URI layer:///messages/uuid or simply a UUID
+        :param page_size: (optional) Number of messages to return; max and
+        default of 100
+        :param from_id: (optional) Get the Messages logically sorted after
+        this ID (by default, this corresponds to Messages chronologically
+        before this ID). Can be passed as a Layer URI layer:///messages/uuid
+        or simply a UUID
         :rtype: list[Message]
         """
         params = {}

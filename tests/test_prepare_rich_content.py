@@ -14,7 +14,7 @@ class TestPrepareRichContent(TestPlatformClient):
             participants=[sender.id, recipient.id],
         )
 
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == 'POST'
             assert url == (
                 'https://api.layer.com/apps/TEST_APP_UUID/'
@@ -48,7 +48,7 @@ class TestPrepareRichContent(TestPlatformClient):
         )
 
     def test_parse_response(self, layerclient, monkeypatch):
-        def return_sample_response(method, url, headers, data):
+        def return_sample_response(method, url, headers, data, params):
             return MockRequestResponse(
                 True,
                 {

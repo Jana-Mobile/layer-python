@@ -5,7 +5,7 @@ from test_utils import MockRequestResponse, TestPlatformClient
 class TestCreateConverstaion(TestPlatformClient):
 
     def test_create_conversation(self, layerclient, monkeypatch):
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == 'POST'
             assert url == (
                 'https://api.layer.com/apps/TEST_APP_UUID/conversations'
@@ -34,7 +34,7 @@ class TestCreateConverstaion(TestPlatformClient):
         layerclient.create_conversation('TEST_CONVERSATION_UUID')
 
     def test_create_conversation_with_options(self, layerclient, monkeypatch):
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == 'POST'
             assert url == (
                 'https://api.layer.com/apps/TEST_APP_UUID/conversations'

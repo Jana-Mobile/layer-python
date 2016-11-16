@@ -4,7 +4,7 @@ from test_utils import MockRequestResponse, TestPlatformClient
 class TestGetConverstaion(TestPlatformClient):
 
     def test_get_conversation(self, layerclient, monkeypatch):
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == "GET"
             assert url == (
                 "https://api.layer.com/apps/TEST_APP_UUID/"

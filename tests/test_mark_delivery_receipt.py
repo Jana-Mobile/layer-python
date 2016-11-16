@@ -5,7 +5,7 @@ from test_utils import MockRequestResponse, TestPlatformClient
 class TestMarkDeliveryReceipt(TestPlatformClient):
 
     def test_mark_delivery_receipt(self, layerclient, monkeypatch):
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == "POST"
             assert url == (
                 "https://api.layer.com/apps/TEST_APP_UUID/"
