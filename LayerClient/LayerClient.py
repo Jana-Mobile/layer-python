@@ -23,12 +23,18 @@ LAYER_URI_ANNOUNCEMENTS = 'announcements'
 LAYER_URI_CONVERSATIONS = 'conversations'
 LAYER_URI_MESSAGES = 'messages'
 LAYER_URI_CONTENT = 'content'
+LAYER_URI_RECEIPTS = 'receipts'
 
 LAYER_URI_USERS = 'users'
 LAYER_URI_USERS_IDENTITY = 'identity'
 LAYER_URI_USERS_BADGE = 'badge'
 
 LAYER_URI_RECEIPTS = 'receipts'
+
+
+class LayerMessageReceipt(object):
+    READ = "read"
+    DELIVERY = "delivery"
 
 
 class LayerPlatformException(Exception):
@@ -267,6 +273,32 @@ class PlatformClient(object):
                 ),
                 params=params
             )
+        )
+
+    def send_message_receipt(self, user_id, message_uuid, receipt_type):
+        """
+        Mark message as "read" or "delivered"
+        :param user_id: ID of User
+        :type user_id: unicode
+        :param message_uuid: UUID of Message
+        :type message_uuid: unicode
+        :param receipt_type: Use LayerMessageReceipt (possible values are
+        "delivery" and "read")
+        :type receipt_type: unicode
+        """
+
+        return self._raw_request(
+            METHOD_POST,
+            self._get_layer_uri(
+                LAYER_URI_USERS,
+                user_id,
+                LAYER_URI_MESSAGES,
+                message_uuid,
+                LAYER_URI_RECEIPTS
+            ),
+            data={
+                "type": receipt_type
+            }
         )
 
     def delete_conversation(self, conversation_uuid):
@@ -520,27 +552,6 @@ class PlatformClient(object):
                 self._get_layer_uri(LAYER_URI_ANNOUNCEMENTS),
                 request_data,
             )
-        )
-
-    def mark_delivery_receipt_message(self, message_uuid, type='sent'):
-        """
-        Mark delivery receipt for message
-
-        Parameters:
-        - `message_uuid`: The uuid of the message read
-        - `type`: receipt message type
-        """
-        request_data = {
-            'type': type
-        }
-        self._raw_request(
-            METHOD_POST,
-            self._get_layer_uri(
-                LAYER_URI_MESSAGES,
-                message_uuid,
-                LAYER_URI_RECEIPTS,
-            ),
-            request_data,
         )
 
 
