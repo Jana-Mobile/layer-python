@@ -32,7 +32,7 @@ class TestSendMessage(TestPlatformClient):
             },
         )
 
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == 'POST'
             assert url == (
                 'https://api.layer.com/apps/TEST_APP_UUID/conversations'
@@ -84,7 +84,7 @@ class TestSendMessage(TestPlatformClient):
         )
 
     def test_parse_response(self, layerclient, monkeypatch):
-        def return_sample_response(method, url, headers, data):
+        def return_sample_response(method, url, headers, data, params):
             return MockRequestResponse(
                 True,
                 {
@@ -187,7 +187,7 @@ class TestSendMessage(TestPlatformClient):
             ),
         ]
 
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == 'POST'
             assert url == (
                 'https://api.layer.com/apps/TEST_APP_UUID/conversations'
@@ -231,7 +231,7 @@ class TestSendMessage(TestPlatformClient):
         )
 
     def test_parse_response_with_rich_content(self, layerclient, monkeypatch):
-        def return_sample_response(method, url, headers, data):
+        def return_sample_response(method, url, headers, data, params):
             return MockRequestResponse(
                 True,
                 {

@@ -4,7 +4,7 @@ from test_utils import MockRequestResponse, TestPlatformClient
 class TestDeleteConverstaion(TestPlatformClient):
 
     def test_delete_conversation(self, layerclient, monkeypatch):
-        def verify_request_args(method, url, headers, data):
+        def verify_request_args(method, url, headers, data, params):
             assert method == "DELETE"
             assert url == (
                 "https://api.layer.com/apps/TEST_APP_UUID/"
