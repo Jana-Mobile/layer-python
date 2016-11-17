@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import sys
 
 import dateutil.parser
 import requests
@@ -29,7 +30,11 @@ LAYER_URI_USERS = 'users'
 LAYER_URI_USERS_IDENTITY = 'identity'
 LAYER_URI_USERS_BADGE = 'badge'
 
-LAYER_URI_RECEIPTS = 'receipts'
+
+def safe_unicode(string):
+    if sys.version_info[0] < 3:
+        return unicode(string)
+    return str(string)
 
 
 class LayerMessageReceipt(object):
@@ -134,7 +139,7 @@ class PlatformClient(object):
         """
         return 'https://api.layer.com/apps/{app_id}/{suffix}'.format(
             app_id=self.app_uuid,
-            suffix='/'.join(map(unicode, suffixes)),
+            suffix='/'.join(map(safe_unicode, suffixes)),
         )
 
     def _raw_request(self, method, url, data=None, extra_headers=None,
