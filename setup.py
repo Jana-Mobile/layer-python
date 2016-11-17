@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='LayerClient',
-    version='0.1.9',
+    version='0.1.10',
     packages=['LayerClient'],
     description='Client for the Layer Platform API',
     url='https://github.com/Jana-Mobile/layer-python',

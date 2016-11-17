@@ -33,7 +33,7 @@ LAYER_URI_USERS_BADGE = 'badge'
 
 def safe_unicode(string):
     if sys.version_info[0] < 3:
-        return unicode(string)
+        return unicode(string)  # NOQA
     return str(string)
 
 
